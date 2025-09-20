@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAR - Your AI Health Companion</title>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Icon Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Charting Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div id="app" class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <i data-lucide="robot" class="logo-icon"></i>
+                <h1 class="logo-text">AMAR</h1>
+            </div>
+            <div class="sidebar-menu">
+                <a href="#dashboard" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+                <a href="#schedule" class="nav-link"><i data-lucide="calendar-clock"></i><span>Schedule</span></a>
+                <a href="#monitoring" class="nav-link"><i data-lucide="camera"></i><span>Monitoring</span></a>
+                <a href="#assistant" class="nav-link"><i data-lucide="sparkles"></i><span>AI Assistant</span></a>
+                <a href="#profile" class="nav-link"><i data-lucide="user-circle"></i><span>Profile</span></a>
+            </div>
+            <div class="sidebar-footer">
+                <div class="profile-shortcut">
+                    <img id="sidebarAvatar" src="https://placehold.co/48x48/e2e8f0/64748b?text=PN" alt="Patient Avatar">
+                    <div>
+                        <p id="sidebarPatientName">Patient Name</p>
+                        <span>Patient</span>
+                    </div>
+                </div>
+                <button id="emergencyButton" class="emergency-button">
+                    <i data-lucide="siren"></i> EMERGENCY
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main id="main-content" class="main-content">
+            <!-- This container will be populated by JavaScript -->
+        </main>
+    </div>
+
+    <!-- This section contains all page templates -->
+    <div class="templates" style="display: none;">
+        
+        <!-- SETUP TEMPLATE -->
+        <template id="setup-template">
+             <section id="setup" class="section setup-section">
+                <div class="setup-card">
+                    <i data-lucide="robot"></i>
+                    <h2>Welcome to AMAR</h2>
+                    <p>Let's create the patient's profile to get started.</p>
+                    <form id="setupForm" class="setup-form">
+                        <input type="text" id="patientNameInput" placeholder="Patient's Name" required>
+                        <input type="text" id="guardianNameInput" placeholder="Guardian's Name" required>
+                        <input type="tel" id="guardianPhoneInput" placeholder="Guardian's Phone (for alerts)" required>
+                        <button type="submit" class="button-primary">Save & Begin</button>
+                    </form>
+                </div>
+            </section>
+        </template>
+        
+        <!-- DASHBOARD TEMPLATE -->
+        <template id="dashboard-template">
+            <section id="dashboard" class="section">
+                <div class="hero-card">
+                    <div id="greeting">
+                        <h2>Good Morning, <span id="patientNameDisplay"></span></h2>
+                        <p>Here is your wellness dashboard. AMAR is on duty.</p>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="grid-col-span-2">
+                        <div class="card">
+                             <h3 class="card-header"><i data-lucide="activity"></i>Medication Adherence This Week</h3>
+                             <div class="chart-container">
+                                <canvas id="adherenceChart"></canvas>
+                             </div>
+                        </div>
+                    </div>
+                    <div class="grid-col-span-1">
+                        <div class="card next-dose-card">
+                            <h3 class="card-header"><i data-lucide="clock"></i>Next Dose</h3>
+                            <p id="nextDoseMed">Metformin</p>
+                            <h4 id="nextDoseTime">08:00 AM</h4>
+                            <span id="nextDoseCountdown">in 2 hours 15 minutes</span>
+                        </div>
+                    </div>
+                    <div class="grid-col-span-1">
+                         <div class="card guardian-card">
+                            <h3 class="card-header"><i data-lucide="heart-handshake"></i>Guardian's Corner</h3>
+                            <p class="guardian-message">"A day of perfect adherence! You're doing great."</p>
+                            <div class="adherence-streak">
+                                <i data-lucide="flame"></i>
+                                <strong>3 Days</strong>
+                                <span>On-Time Streak</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-col-span-2">
+                        <div class="card">
+                             <h3 class="card-header"><i data-lucide="pill"></i>Pill Compartment Status</h3>
+                             <div id="pillCompartments" class="pill-status-grid"></div>
+                             <div id="refillWarning" class="refill-warning hidden">
+                                <i data-lucide="alert-triangle"></i> <span id="refillMessage"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <!-- SCHEDULE TEMPLATE -->
+        <template id="schedule-template">
+            <section id="schedule" class="section">
+                <div class="page-header">
+                    <h2>Medication Schedule</h2>
+                    <div class="header-actions">
+                         <button id="generateSummaryBtn" class="button-secondary"><i data-lucide="sparkles"></i>Generate Summary</button>
+                         <button id="addNewScheduleBtn" class="button-primary"><i data-lucide="plus"></i>Add New</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div id="scheduleList" class="schedule-list"></div>
+                </div>
+            </section>
+        </template>
+        
+        <!-- MONITORING TEMPLATE -->
+        <template id="monitoring-template">
+            <section id="monitoring" class="section">
+                <div class="page-header">
+                    <h2>Activity & Monitoring</h2>
+                    <button id="analyzeLogBtn" class="button-secondary"><i data-lucide="sparkles"></i>Analyze Log</button>
+                </div>
+                <div class="card">
+                    <div class="tab-nav">
+                        <button data-tab="dispenseLogTab" class="tab-link active">Dispense Log</button>
+                        <button data-tab="imageLogTab" class="tab-link">Image Log</button>
+                    </div>
+                    <div class="tab-content-container">
+                        <div id="dispenseLogTab" class="tab-content active">
+                            <ul id="dispenseLogList" class="log-list"></ul>
+                        </div>
+                        <div id="imageLogTab" class="tab-content">
+                            <div id="imageLogGrid" class="image-grid"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </template>
+        
+        <!-- AI ASSISTANT TEMPLATE -->
+        <template id="assistant-template">
+            <section id="assistant" class="section">
+                <div class="page-header">
+                    <h2>AI Assistant</h2>
+                </div>
+                <div class="card chat-card">
+                    <div id="chatWindow" class="chat-window">
+                        <!-- Initial message -->
+                        <div class="chat-message ai">
+                            <i data-lucide="robot"></i>
+                            <div class="chat-bubble">
+                                <p>Hello! I'm AMAR. Ask me about medications or general health questions. Please remember, I am not a doctor.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <form id="chatForm" class="chat-form">
+                            <input type="text" id="chatInput" placeholder="Ask AMAR a question..." required>
+                            <button type="submit" class="button-primary"><i data-lucide="send"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+        <!-- PROFILE TEMPLATE -->
+        <template id="profile-template">
+            <section id="profile" class="section">
+                <div class="page-header">
+                    <h2>Patient & Guardian Profile</h2>
+                </div>
+                <div class="card profile-card">
+                    <div class="profile-picture-wrapper">
+                        <img id="profilePicture" src="https://placehold.co/160x160/e2e8f0/64748b?text=PN" alt="Patient Profile Picture">
+                        <label for="avatarUpload" class="upload-button">
+                            <i data-lucide="camera"></i>
+                            <input type="file" id="avatarUpload" class="hidden" accept="image/*">
+                        </label>
+                    </div>
+                    <form id="profileForm" class="profile-form">
+                        <div>
+                            <label>Patient's Name</label>
+                            <input type="text" id="profilePatientName" readonly>
+                        </div>
+                        <div>
+                            <label>Guardian's Name</label>
+                            <input type="text" id="profileGuardianName">
+                        </div>
+                        <div>
+                            <label>Guardian's Phone (for alerts)</label>
+                            <input type="tel" id="profileGuardianPhone">
+                        </div>
+                        <button type="submit" class="button-primary">Save Changes</button>
+                    </form>
+                </div>
+            </section>
+        </template>
+
+        <!-- EMERGENCY TEMPLATE -->
+        <template id="emergency-template">
+            <section id="emergency" class="section emergency-section">
+                <div class="emergency-alert-banner">
+                    <i data-lucide="siren"></i>
+                    <div>
+                        <h3>EMERGENCY MODE ACTIVATED</h3>
+                        <p id="emergencyTimestamp">Activated at: 08:32:15 AM</p>
+                    </div>
+                </div>
+                <div class="emergency-grid">
+                    <div class="video-stream-container">
+                        <h4>Live Video Stream</h4>
+                        <div class="video-placeholder">
+                             <i data-lucide="video-off"></i>
+                             <span>Connecting to camera...</span>
+                        </div>
+                    </div>
+                    <div class="actions-container">
+                        <h4>Emergency Actions</h4>
+                        <div class="actions-grid">
+                             <button class="button-primary"><i data-lucide="phone-call"></i>Call Patient</button>
+                             <button class="button-secondary" style="--btn-bg: var(--accent-green);"><i data-lucide="message-square"></i>Send SMS</button>
+                             <button id="deactivateEmergencyBtn" class="button-secondary" style="--btn-bg: var(--text-secondary);"><i data-lucide="shield-off"></i>Deactivate</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </template>
+
+    </div>
+
+    <!-- MODALS -->
+    <div id="modalBackdrop" class="modal-backdrop"></div>
+    
+    <div id="scheduleModal" class="modal">
+        <h3 id="scheduleModalTitle">Add New Schedule</h3>
+        <form id="scheduleForm">
+            <div>
+                <label for="medName">Medication Name</label>
+                <input type="text" id="medName" required>
+            </div>
+            <div>
+                <label for="medTime">Time</label>
+                <input type="time" id="medTime" required>
+            </div>
+            <div>
+                <label for="medCompartment">Compartment (1-7)</label>
+                <select id="medCompartment" required>
+                    <option value="1">Compartment 1</option><option value="2">Compartment 2</option><option value="3">Compartment 3</option><option value="4">Compartment 4</option><option value="5">Compartment 5</option><option value="6">Compartment 6</option><option value="7">Compartment 7</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="cancelScheduleBtn" class="button-secondary">Cancel</button>
+                <button type="submit" class="button-primary">Save</button>
+            </div>
+        </form>
+    </div>
+    
+    <div id="aiResultModal" class="modal">
+         <h3 id="aiResultTitle"><i data-lucide="sparkles"></i>AI Analysis Complete</h3>
+         <div id="aiResultContent" class="ai-result-content"></div>
+         <div class="modal-actions">
+            <button id="closeAiResultBtn" class="button-primary">Close</button>
+         </div>
+    </div>
+
+    <div id="loadingModal" class="loading-modal">
+        <div class="loading-spinner"></div>
+        <h3>AI is thinking...</h3>
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+
+</body>
+</html>
+
